@@ -1,0 +1,15 @@
+{
+  "name": "karmabot",
+  "version": "1.0.0",
+  "description": "A simple Slack bot that manages user karma points.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "slack",
+    "karma"
+  ],
+  "author": "R.W. Blickhan",
+  "license": "ISC"
+}
