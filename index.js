@@ -27,26 +27,20 @@ class karmabot extends slackbots {
     }
 
     mentionsUser(data) {
-        return message.text.indexOf('@') > -1;
+        return data.text.indexOf('@') > -1;
     }
 
     isKarmabotMessage(data) {
-        return data.user === getUserId('karmabot');
-    }
+        return data.user === this.getUserId('karmabot');
+    } 
 
-    mentionsKarmabot(data) {
-        var words = data.text.split(' ');
-        for (word of words) {
-            if (word === "@karmabot") {
-                return true;
-            }
-        }
-        return false;
+    updateScores(data) {
+        //TODO
     }
 }
 
 var bot = new karmabot({
-    token: 'xoxb-187038183317-DpKTYbEAjLECJvLCqYdJ2w2o',
+    token: 'xoxb-187038183317-79L1RqDej5SeygE6HcGjvxYS',
     dbPath: '',
     name: 'karmabot'
 });
@@ -54,32 +48,33 @@ var bot = new karmabot({
 bot.on('start', function() {
     //setup and such
     bot.connectDb();
-    bot.postMessageToChannel('general', "Hey all, I'm really excited to let you know karmabot is starting up!");
+    //bot.postMessageToChannel('general', "Hey all, I'm really excited to let you know karmabot is starting up!");
 });
 
 bot.on('message', function(data) {
     //message handling and such
+   console.log(data);
    if (!bot.isChatMessage(data)) {
+       console.log('not a chat message');
         return;
    }
 
    if (!bot.isChannelConversation(data)) {
+       console.log('not a conversation in a channel');
         return;
    }
 
    if (!bot.mentionsUser(data)) {
+       console.log('doesnt mention a user');
        return;
    }
 
    if (bot.isKarmabotMessage(data)) {
+       console.log('is karmabot msg');
        return;
    }
 
-   if (bot.mentionsKarmabot(data)) {
-        //TODO show help and such
-        return;
-   }
-
+   console.log('should update scores');
    bot.updateScores(data);
 
 });
