@@ -40,7 +40,7 @@ class karmabot extends slackbots {
 }
 
 var bot = new karmabot({
-    token: 'xoxb-187038183317-79L1RqDej5SeygE6HcGjvxYS',
+    token: '',
     dbPath: '',
     name: 'karmabot'
 });
