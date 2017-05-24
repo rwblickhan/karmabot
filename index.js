@@ -35,14 +35,55 @@ class karmabot extends slackbots {
     } 
 
     updateScores(data) {
-        //TODO
+
+        console.log(data);
+        console.log("text:" + data.text);
+
+        var words = data.text.split(' ');
+        var regex = /<@.+>/;
+        for (var word of words) {
+            if (!regex.test(word)) {
+                //not an @message
+                return;
+            }
+
+            //TODO parse username to give points to
+            var substart = word.indexOf('@');
+            var subend = word.indexOf('>');
+            var userid = word.substring(substart+1, subend);
+            
+            //parse points to give
+            var pointstr = word.substring(subend);
+            var numPos = 0;
+            var numNeg = 0;
+            for (var i = 0; i < pointstr.length; i++) {
+                if (pointstr[i] === '+') {
+                    numPos++;
+                }
+                if (pointstr[i] === '-') {
+                    numNeg++;
+                }
+            }
+
+            var points = 0;
+            if (numPos > 1) {
+                points += (numPos - 1);
+            }
+            if (numNeg > 1) {
+                points -= (numNeg - 1);
+            }
+
+            //TODO update database and whatnot
+            //TODO post update message
+            console.log("user " + userid + " got this many points: " + points);
+        }
     }
 }
 
 var bot = new karmabot({
-    token: '',
-    dbPath: '',
-    name: 'karmabot'
+    token: token,
+    dbPath: dbPath,
+    name: name
 });
 
 bot.on('start', function() {
@@ -53,29 +94,23 @@ bot.on('start', function() {
 
 bot.on('message', function(data) {
     //message handling and such
-   console.log(data);
-   if (!bot.isChatMessage(data)) {
-       console.log('not a chat message');
+    if (!bot.isChatMessage(data)) {
         return;
-   }
+    }
 
-   if (!bot.isChannelConversation(data)) {
-       console.log('not a conversation in a channel');
+    if (!bot.isChannelConversation(data)) {
         return;
-   }
+    }
 
-   if (!bot.mentionsUser(data)) {
-       console.log('doesnt mention a user');
+    if (!bot.mentionsUser(data)) {
        return;
-   }
+    }
 
-   if (bot.isKarmabotMessage(data)) {
-       console.log('is karmabot msg');
+    if (bot.isKarmabotMessage(data)) {
        return;
-   }
+    }
 
-   console.log('should update scores');
-   bot.updateScores(data);
+    bot.updateScores(data);
 
 });
 
