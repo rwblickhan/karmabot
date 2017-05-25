@@ -1,3 +1,7 @@
+#!/usr/bin/env node
+
+'use strict';
+
 var slackbots = require('slackbots');
 var process  = require('process');
 var path = require('path');
