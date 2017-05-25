@@ -2,7 +2,7 @@ var slackbots = require('slackbots');
 var process  = require('process');
 var path = require('path');
 var fs = require('fs');
-var sqlite = require('sqlite3');
+var sqlite = require('sqlite3').verbose();
 
 var token  = process.env.KARMABOT_API_KEY;
 var dbPath = process.env.KARMABOT_DB_PATH;
@@ -43,7 +43,7 @@ class karmabot extends slackbots {
     }
 
     isKarmabotMessage(data) {
-        return data.user === this.getUserId('karmabot');
+        return data.username === 'karmabot';
     } 
 
     updateScores(data) {
@@ -83,27 +83,36 @@ class karmabot extends slackbots {
 
             console.log("User " + userid + " got points: " + points);
 
-            this.db.get('SELECT userid FROM data WHERE userid = ? LIMIT 1', userid, function(err, record) {
+            if (!this.db) {
+                console.log("db gone up here");
+            }
+
+            var self = this;
+            self.db.get('SELECT * FROM data WHERE userid = ? LIMIT 1', userid, function(err, record) {
                 if (err) {
                     return console.error("Database error: " + err);
                 }
 
+                if (!self.db) {
+                    console.log("db is gone");
+                }
+
                 if (!record) {
-                    this.db.run('INSERT INTO data(userid, points) VALUES(?, ?)', [userid, points], function(err) {
+                    self.db.run('INSERT INTO data(userid, points) VALUES(?, ?)', [userid, points], function(err) {
                         if (err) {
                             return console.error("Database error: " + err);
                         }
-                        this.postMessageToChannel('general', "Hey, <@" + userid + "> now has " + points + " points!"); 
+                        self.postMessageToChannel('general', "Hey, <@" + userid + "> now has " + points + " points!"); 
                     });
-                    return;
-                }
-
-                this.db.run('INSERT INTO data(userid, points) VALUES(?, ?)', [userid, (record.points + points)], function(err) {
-                    if (err) {
-                        return console.error("Database error: " + err);
-                    }
-                    this.postMessageToChannel('general', "Hey, <@" + userid + "> now has " + (record.points + points) + " points!");
-                });
+                } else {
+                    var total = parseInt(record.points) + points;
+                    self.db.run('UPDATE data SET points = ? WHERE userid = ?', [total, userid], function(err) {
+                        if (err) {
+                           return console.error("Database error: " + err);
+                        }
+                         self.postMessageToChannel('general', "Hey, <@" + userid + "> now has " + total + " points!");
+                    });
+                } 
             });
         }
     }
