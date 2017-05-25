@@ -81,10 +81,8 @@ class karmabot extends slackbots {
                 points -= (numNeg - 1);
             }
 
-            console.log("User " + userid + " got points: " + points);
-
-            if (!this.db) {
-                console.log("db gone up here");
+            if (numPos === 0 && numNeg === 0) {
+                return;
             }
 
             var self = this;
