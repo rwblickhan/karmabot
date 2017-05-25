@@ -11,6 +11,7 @@ var sqlite = require('sqlite3').verbose();
 var token  = process.env.KARMABOT_API_KEY;
 var dbPath = process.env.KARMABOT_DB_PATH;
 var name   = process.env.KARMABOT_NAME;
+var floodlimit = process.env.FLOOD_CONTROL_LIMIT;
 
 class karmabot extends slackbots {
     
@@ -83,11 +84,11 @@ class karmabot extends slackbots {
 
             var points = 0;
             if (numPos > 1) {
-                var change = Math.min((numPos - 1), 5);
+                var change = Math.min((numPos - 1), floodlimit);
                 points += change; 
             }
             if (numNeg > 1) {
-                var change = Math.min((numNeg - 1), 5);
+                var change = Math.min((numNeg - 1), floodlimit);
                 points -= change;
             }
 
