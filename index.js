@@ -83,10 +83,12 @@ class karmabot extends slackbots {
 
             var points = 0;
             if (numPos > 1) {
-                points += (numPos - 1);
+                var change = Math.min((numPos - 1), 5);
+                points += change; 
             }
             if (numNeg > 1) {
-                points -= (numNeg - 1);
+                var change = Math.min((numNeg - 1), 5);
+                points -= change;
             }
 
             if (numPos === 0 && numNeg === 0) {
