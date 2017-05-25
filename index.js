@@ -63,6 +63,10 @@ class karmabot extends slackbots {
             var substart = word.indexOf('@');
             var subend = word.indexOf('>');
             var userid = word.substring(substart+1, subend);
+            if (data.user === userid) {
+                this.postMessageToChannel('general', "Hey, no cheating, <@" + userid + ">!");
+                continue;
+            }
             
             //parse points to give
             var pointstr = word.substring(subend);
@@ -112,7 +116,7 @@ class karmabot extends slackbots {
                         if (err) {
                            return console.error("Database error: " + err);
                         }
-                         self.postMessageToChannel('general', "Hey, <@" + userid + "> now has " + total + " points!");
+                        self.postMessageToChannel('general', "Hey, <@" + userid + "> now has " + total + " points!");
                     });
                 } 
             });
