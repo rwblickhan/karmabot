@@ -8,8 +8,9 @@
     "start": "npm run build && node Karmabot.js"
   },
   "dependencies": {
-    "sqlite3": "latest",
-    "slackbots": "latest"
+    "@slack/client": "^4.1.0",
+    "slackbots": "latest",
+    "sqlite3": "latest"
   },
   "keywords": [
     "slack",
