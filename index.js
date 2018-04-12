@@ -2,16 +2,16 @@
 
 'use strict';
 
-var slackbots = require('slackbots');
-var process  = require('process');
-var path = require('path');
-var fs = require('fs');
-var sqlite = require('sqlite3').verbose();
+const slackbots = require('slackbots');
+const process  = require('process');
+const path = require('path');
+const fs = require('fs');
+const sqlite = require('sqlite3').verbose();
 
-var token  = process.env.KARMABOT_API_KEY;
-var dbPath = process.env.KARMABOT_DB_PATH;
-var name   = process.env.KARMABOT_NAME;
-var floodlimit = process.env.FLOOD_CONTROL_LIMIT;
+const token  = process.env.KARMABOT_API_KEY;
+const dbPath = process.env.KARMABOT_DB_PATH;
+const name   = process.env.KARMABOT_NAME;
+const floodlimit = process.env.FLOOD_CONTROL_LIMIT;
 
 class karmabot extends slackbots {
     
@@ -35,45 +35,45 @@ class karmabot extends slackbots {
         });
     }
 
-    isChatMessage(data) {
+    static isChatMessage(data) {
         return data.type === 'message' && Boolean(data.text);
     }
 
-    isChannelConversation(data) {
+    static isChannelConversation(data) {
         return typeof data.channel === 'string' && data.channel[0] === 'C';
     }
 
-    mentionsUser(data) {
+    static mentionsUser(data) {
         return data.text.indexOf('@') > -1;
     }
 
-    isKarmabotMessage(data) {
+    static isKarmabotMessage(data) {
         return data.username === 'karmabot';
     } 
 
     updateScores(data) {
 
-        var words = data.text.split(' ');
-        var regex = /<@.+>/;
-        for (var word of words) {
+        const words = data.text.split(' ');
+        const regex = /<@.+>/;
+        for (const word of words) {
             if (!regex.test(word)) {
                 //not an @message
                 continue;
             }
 
-            var substart = word.indexOf('@');
-            var subend = word.indexOf('>');
-            var userid = word.substring(substart+1, subend);
+            const substart = word.indexOf('@');
+            const subend = word.indexOf('>');
+            const userid = word.substring(substart+1, subend);
             if (data.user === userid) {
                 this.postMessageToChannel('general', "Hey, no cheating, <@" + userid + ">!");
                 continue;
             }
             
             //parse points to give
-            var pointstr = word.substring(subend);
-            var numPos = 0;
-            var numNeg = 0;
-            for (var i = 0; i < pointstr.length; i++) {
+            const pointstr = word.substring(subend);
+            let numPos = 0;
+            let numNeg = 0;
+            for (const i = 0; i < pointstr.length; i++) {
                 if (pointstr[i] === '+') {
                     numPos++;
                 }
@@ -82,21 +82,19 @@ class karmabot extends slackbots {
                 }
             }
 
-            var points = 0;
+            let points = 0;
             if (numPos > 1) {
-                var change = Math.min((numPos - 1), floodlimit);
-                points += change; 
+                points += Math.min((numPos - 1), floodlimit);
             }
             if (numNeg > 1) {
-                var change = Math.min((numNeg - 1), floodlimit);
-                points -= change;
+                points -= Math.min((numNeg - 1), floodlimit);
             }
 
             if (numPos === 0 && numNeg === 0) {
                 return;
             }
 
-            var self = this;
+            const self = this;
             self.db.get('SELECT * FROM data WHERE userid = ? LIMIT 1', userid, function(err, record) {
                 if (err) {
                     return console.error("Database error: " + err);
@@ -114,7 +112,7 @@ class karmabot extends slackbots {
                         self.postMessageToChannel('general', "Hey, <@" + userid + "> now has " + points + " points!"); 
                     });
                 } else {
-                    var total = parseInt(record.points) + points;
+                    const total = parseInt(record.points) + points;
                     self.db.run('UPDATE data SET points = ? WHERE userid = ?', [total, userid], function(err) {
                         if (err) {
                            return console.error("Database error: " + err);
@@ -127,7 +125,7 @@ class karmabot extends slackbots {
     }
 }
 
-var bot = new karmabot({
+const bot = new karmabot({
     token: token,
     dbPath: dbPath,
     name: name
