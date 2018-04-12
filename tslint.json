@@ -1,0 +1,24 @@
+{
+    "extends": [
+        "tslint:recommended"
+    ],
+    "rules": {
+        "no-implicit-dependencies": [
+            true,
+            "dev"
+        ],
+        "no-string-literal": false,
+        "only-arrow-functions": false,
+        "space-before-function-paren": [
+            true,
+            {
+                "anonymous": "always",
+                "named": "never",
+                "asyncArrow": "always"
+            }
+        ],
+        "object-literal-sort-keys": false,
+        "forin": false,
+        "ordered-imports": false
+    }
+}
