@@ -34,6 +34,7 @@ class Karmabot {
     private floodLimit: number;
     private db: sql.Database;
     private connection: slack.RTMClient;
+    private channel: string;
 
     constructor(options: IOptions) {
         logTrace("karmabot::constructor()");
@@ -41,6 +42,7 @@ class Karmabot {
         this.token = options.token;
         this.name = options.name;
         this.floodLimit = parseInt(options.floodLimit, 10);
+        this.channel = "";
         logDebug("Creating karmabot with name " + this.name + " and flood limit " + this.floodLimit);
 
         const finalDBPath = options.dbPath || path.resolve(process.cwd(), "karmabot.db");
@@ -62,12 +64,20 @@ class Karmabot {
 
         this.connection = new slack.RTMClient(this.token);
         this.connection.start({});
-        this.connection.sendMessage(
-            "Hey all, I'm really excited to let you know karmabot is starting up!",
-            "general",
-        ).catch((err) => {
-            logDebug("Message send error: " + err);
-        });
+        const client = new slack.WebClient(this.token);
+        client.channels.list()
+            .then((res: any) => {
+                const general = res.channels.find((c: any) => c.name === "general");
+                if (general) {
+                    this.connection.sendMessage(
+                        "Hey all, I'm really excited to let you know karmabot is starting up!",
+                        general
+                    );
+                }
+            })
+            .catch((err) => {
+                logDebug("Startup error: " + err);
+            });
 
         this.connection.on("message", this.updateScores);
     }
@@ -157,8 +167,8 @@ class Karmabot {
                                 self.db.close();
                                 process.exit(1);
                             }
-                            self.connection.sendMessage("general",
-                                "Hey, <@" + userid + "> now has " + points + " points!");
+                            self.connection.sendMessage("Hey, <@" + userid + "> now has " + points + " points!",
+                                event.channel);
                         });
                 } else {
                     const total = parseInt(record.points, 10) + points;
@@ -170,8 +180,8 @@ class Karmabot {
                                 self.db.close();
                                 process.exit(1);
                             }
-                            self.connection.sendMessage("general",
-                                "Hey, <@" + userid + "> now has " + total + " points!");
+                            self.connection.sendMessage("Hey, <@" + userid + "> now has " + total + " points!",
+                                event.channel);
                         });
                 }
             });
