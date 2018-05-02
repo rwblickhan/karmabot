@@ -71,7 +71,7 @@ class Karmabot {
                 if (general) {
                     this.connection.sendMessage(
                         "Hey all, I'm really excited to let you know karmabot is starting up!",
-                        general
+                        general.id,
                     );
                 }
             })
