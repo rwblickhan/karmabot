@@ -7,6 +7,7 @@ import {isNullOrUndefined} from "util";
 
 const logDebug = log("karmabot::debug");
 const logTrace = log("karmabot::trace");
+const logError = log("karmabot::error");
 
 class Karmabot {
     private static token: string;
@@ -50,7 +51,7 @@ class Karmabot {
         Karmabot.db = new sql.Database(finalDBPath);
         Karmabot.db.run("CREATE TABLE IF NOT EXISTS data (userid TEXT, points INTEGER)", function (err) {
             if (err) {
-                logDebug("Error creating database: " + err);
+                logError("Error creating database: " + err);
                 // TODO error handling
                 Karmabot.db.close();
                 process.exit(1);
@@ -73,7 +74,7 @@ class Karmabot {
                 }
             })
             .catch((err) => {
-                logDebug("Startup error: " + err);
+                logError("Startup error: " + err);
             });
 
         Karmabot.connection.on("message", this.updateScores);
@@ -148,7 +149,7 @@ class Karmabot {
 
             Karmabot.db.get("SELECT * FROM data WHERE userid = ? LIMIT 1", userid, function (readErr, record) {
                 if (readErr) {
-                    logDebug("Error while reading from database: " + readErr);
+                    logError("Error while reading from database: " + readErr);
                     // TODO error handling
                     Karmabot.db.close();
                     process.exit(1);
@@ -158,7 +159,7 @@ class Karmabot {
                     Karmabot.db.run("INSERT INTO data(userid, points) VALUES(?, ?)", [userid, points],
                         function (writeErr) {
                             if (writeErr) {
-                                logDebug("Error while writing to database: " + writeErr);
+                                logError("Error while writing to database: " + writeErr);
                                 // TODO error handling
                                 Karmabot.db.close();
                                 process.exit(1);
@@ -171,7 +172,7 @@ class Karmabot {
                     Karmabot.db.run("UPDATE data SET points = ? WHERE userid = ?", [total, userid],
                         function (writeErr) {
                             if (writeErr) {
-                                logDebug("Error while writing to database: " + writeErr);
+                                logError("Error while writing to database: " + writeErr);
                                 // TODO error handling
                                 Karmabot.db.close();
                                 process.exit(1);
@@ -192,7 +193,7 @@ interface IOptions {
 }
 
 if (isNullOrUndefined(process.env.KARMABOT_API_KEY)) {
-    logDebug("Missing API token");
+    logError("Missing API token");
     process.exit(1);
 }
 const token: string = process.env.KARMABOT_API_KEY as string;
