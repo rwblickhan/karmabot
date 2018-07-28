@@ -71,6 +71,11 @@ class Karmabot {
                         "Hey all, I'm really excited to let you know karmabot is starting up!",
                         general.id,
                     );
+                    Karmabot.connection.sendMessage("Just @message someone "
+                        + "with some + or - at the end--and yes, you can mix them!" +
+                        "You can also say '@karmabot points' to get your points, " +
+                        "or '@karmabot help' to see this message again.",
+                        general.id);
                 }
             })
             .catch((err) => {
@@ -109,7 +114,7 @@ class Karmabot {
         const regex = /<@.+>/;
         for (const word of words) {
             if (!regex.test(word)) {
-                logDebug("Event was not an @message");
+                logDebug("Not looking at an @message");
                 continue;
             }
 
@@ -121,6 +126,9 @@ class Karmabot {
                 Karmabot.connection.sendMessage("Hey, no cheating, <@" + userid + ">!",
                     event.channel);
                 return;
+            }
+            if ("karmabot" === userid) {
+                return this.handleCommand(event);
             }
 
             const pointstr = word.substring(subend);
@@ -135,16 +143,16 @@ class Karmabot {
                 }
             }
 
+            if (numPos === 0 && numNeg === 0) {
+                return;
+            }
+
             let points = 0;
             if (numPos > 1) {
                 points += Math.min((numPos - 1), Karmabot.floodLimit);
             }
             if (numNeg > 1) {
                 points -= Math.min((numNeg - 1), Karmabot.floodLimit);
-            }
-
-            if (numPos === 0 && numNeg === 0) {
-                return;
             }
 
             Karmabot.db.get("SELECT * FROM data WHERE userid = ? LIMIT 1", userid, function (readErr, record) {
@@ -160,7 +168,6 @@ class Karmabot {
                         function (writeErr) {
                             if (writeErr) {
                                 logError("Error while writing to database: " + writeErr);
-                                // TODO error handling
                                 Karmabot.db.close();
                                 process.exit(1);
                             }
@@ -173,7 +180,6 @@ class Karmabot {
                         function (writeErr) {
                             if (writeErr) {
                                 logError("Error while writing to database: " + writeErr);
-                                // TODO error handling
                                 Karmabot.db.close();
                                 process.exit(1);
                             }
@@ -182,6 +188,42 @@ class Karmabot {
                         });
                 }
             });
+        }
+    }
+
+    private handleCommand(event: any) {
+        logTrace("karmabot::handleCommand()");
+        const words = event.text.split(" ");
+        for (const word of words) {
+            if ("help" === word) {
+                // send help message
+                Karmabot.connection.sendMessage("Hey there, <@" + event.user + ">, just @message someone "
+                    + "with some + or - at the end--and yes, you can mix them!" +
+                    "You can also say '@karmabot points' to get your points, " +
+                    "or '@karmabot help' to see this message again.",
+                    event.channel);
+            }
+            if ("points" === word) {
+                // show the user their points
+                Karmabot.db.get("SELECT * FROM data WHERE userid = ? LIMIT 1", event.user, function (readErr, record) {
+                    if (readErr) {
+                        logError("Error while reading from database: " + readErr);
+                        Karmabot.db.close();
+                        process.exit(1);
+                    }
+
+                    if (!record) {
+                        Karmabot.connection.sendMessage("Huh, looks like I don't have any record of you," +
+                            "<@" + event.user + ">. "
+                            + "Ask somebody to give you some points!",
+                            event.channel);
+                    } else {
+                        Karmabot.connection.sendMessage("Hey, <@" + event.user + ">,"
+                            + "you have " + parseInt(record.points, 10) + " points!",
+                            event.channel);
+                    }
+                });
+            }
         }
     }
 }
