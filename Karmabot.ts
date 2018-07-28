@@ -72,7 +72,7 @@ class Karmabot {
                         general.id,
                     );
                     Karmabot.connection.sendMessage("Just @message someone "
-                        + "with some + or - at the end--and yes, you can mix them!" +
+                        + "with some + or - at the end--and yes, you can mix them! " +
                         "You can also say '@karmabot points' to get your points, " +
                         "or '@karmabot help' to see this message again.",
                         general.id);
@@ -83,6 +83,42 @@ class Karmabot {
             });
 
         Karmabot.connection.on("message", this.updateScores);
+    }
+
+    private handleCommand(event: any) {
+        logTrace("karmabot::handleCommand()");
+        const words = event.text.split(" ");
+        for (const word of words) {
+            if ("help" === word) {
+                // send help message
+                Karmabot.connection.sendMessage("Hey there, <@" + event.user + ">, just @message someone "
+                    + "with some + or - at the end--and yes, you can mix them! " +
+                    "You can also say '@karmabot points' to get your points, " +
+                    "or '@karmabot help' to see this message again.",
+                    event.channel);
+            }
+            if ("points" === word) {
+                // show the user their points
+                Karmabot.db.get("SELECT * FROM data WHERE userid = ? LIMIT 1", event.user, function (readErr, record) {
+                    if (readErr) {
+                        logError("Error while reading from database: " + readErr);
+                        Karmabot.db.close();
+                        process.exit(1);
+                    }
+
+                    if (!record) {
+                        Karmabot.connection.sendMessage("Huh, looks like I don't have any record of you," +
+                            "<@" + event.user + ">. "
+                            + "Ask somebody to give you some points!",
+                            event.channel);
+                    } else {
+                        Karmabot.connection.sendMessage("Hey, <@" + event.user + ">,"
+                            + "you have " + parseInt(record.points, 10) + " points!",
+                            event.channel);
+                    }
+                });
+            }
+        }
     }
 
     // TODO make Karmabot parameter not any
@@ -188,42 +224,6 @@ class Karmabot {
                         });
                 }
             });
-        }
-    }
-
-    private handleCommand(event: any) {
-        logTrace("karmabot::handleCommand()");
-        const words = event.text.split(" ");
-        for (const word of words) {
-            if ("help" === word) {
-                // send help message
-                Karmabot.connection.sendMessage("Hey there, <@" + event.user + ">, just @message someone "
-                    + "with some + or - at the end--and yes, you can mix them!" +
-                    "You can also say '@karmabot points' to get your points, " +
-                    "or '@karmabot help' to see this message again.",
-                    event.channel);
-            }
-            if ("points" === word) {
-                // show the user their points
-                Karmabot.db.get("SELECT * FROM data WHERE userid = ? LIMIT 1", event.user, function (readErr, record) {
-                    if (readErr) {
-                        logError("Error while reading from database: " + readErr);
-                        Karmabot.db.close();
-                        process.exit(1);
-                    }
-
-                    if (!record) {
-                        Karmabot.connection.sendMessage("Huh, looks like I don't have any record of you," +
-                            "<@" + event.user + ">. "
-                            + "Ask somebody to give you some points!",
-                            event.channel);
-                    } else {
-                        Karmabot.connection.sendMessage("Hey, <@" + event.user + ">,"
-                            + "you have " + parseInt(record.points, 10) + " points!",
-                            event.channel);
-                    }
-                });
-            }
         }
     }
 }
